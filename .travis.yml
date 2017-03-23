@@ -1,4 +1,15 @@
 language: python
+
 python:
   - "3.4"
-script: py.test
+
+install:
+  - pip install --user -r requirements.txt
+  - pip install --user pytest
+  - pip install --user pytest-cov
+  - pip install --user codecov
+
+script: py.test --cov=./
+
+after_success:
+  - codecov
