@@ -1,3 +1,7 @@
+from pprint import pprint
+from time import sleep
+from tornado.ioloop import IOLoop
+
 from jsonhandler import JsonHandler
 from webhook.presenter import WebHookPresenter
 from webhook.usecase import WebHookUseCase
@@ -13,7 +17,15 @@ class WebHookHandler(JsonHandler, WebHookView):
         if self.get_argument("hub.mode") == 'subscribe':
             self.presenter.subscribe(self.get_argument("hub.verify_token"), self.get_argument("hub.challenge"))
 
-    def on_verified(self, response):
+    def post(self):
+        IOLoop.instance().spawn_callback(lambda : self.presenter.entriesReceived(self.json_data['entry']))
+        pprint(self.json_data)
+        self.write_json({"success": True})
+
+        # if self.json_data['object'] == 'page':
+        #     self.presenter.entriesReceived(self.json_data['entry'])
+
+    def on_success(self, response):
         self.write_json(response)
 
     def on_error(self):

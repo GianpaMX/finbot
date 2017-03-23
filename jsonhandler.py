@@ -10,8 +10,8 @@ class JsonHandler(RequestHandler):
         # Incorporate request JSON into arguments dictionary.
         if self.request.body:
             try:
-                json_data = json.loads(self.request.body)
-                self.request.arguments.update(json_data)
+                self.json_data = json.loads(self.request.body)
+                self.request.arguments.update(self.json_data)
             except ValueError:
                 message = 'Unable to parse JSON.'
                 self.send_error(400, message=message)  # Bad Request

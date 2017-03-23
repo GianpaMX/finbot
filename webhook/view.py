@@ -1,5 +1,5 @@
 class WebHookView(object):
-    def on_verified(self, response):
+    def on_success(self, response):
         raise NotImplementedError("Please Implement this method")
 
     def on_error(self):

@@ -11,8 +11,20 @@ class WebHookPresenter(WebHookUseCaseCallback):
     def subscribe(self, token, challenge):
         self.usecase.verify(token, challenge, self)
 
-    def on_success(self, challenge):
-        self.view.on_verified({'challenge': challenge})
+    def on_verification_success(self, challenge):
+        self.view.on_success({'challenge': challenge})
 
     def on_failure(self):
         self.view.on_error()
+
+    def entriesReceived(self, entries):
+        for entry in entries:
+            self.usecase.entryReceived(entry)
+
+    def on_message_received(self, page_id, time_of_event, event):
+        pass
+
+    def on_unknown_event(self, page_id, time_of_event, event):
+        pass
+
+

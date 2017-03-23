@@ -26,7 +26,7 @@ class TestWebHookPresenter(TestCase):
         self.assertIsInstance(self.usecase.verify.call_args[0][2], WebHookUseCaseCallback)
 
     def test_on_success(self):
-        self.presenter.on_success(self.EXPECTED_CHALLENGE)
+        self.presenter.on_verification_success(self.EXPECTED_CHALLENGE)
 
         self.view.on_verified.assert_called_with({'challenge': self.EXPECTED_CHALLENGE})
 
