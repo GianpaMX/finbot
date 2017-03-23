@@ -16,8 +16,6 @@ class JsonHandler(RequestHandler):
                 message = 'Unable to parse JSON.'
                 self.send_error(400, message=message)  # Bad Request
 
-        # Set up response dictionary.
-
     def set_default_headers(self):
         self.set_header('Content-Type', 'application/json')
 
@@ -28,7 +26,9 @@ class JsonHandler(RequestHandler):
             else:
                 kwargs['message'] = 'Unknown error.'
 
-        self.write_json(kwargs)
+        self.write_json({
+            'message': kwargs['message']
+        })
 
     def write_json(self, response):
         output = json.dumps(response)
