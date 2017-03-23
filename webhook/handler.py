@@ -11,7 +11,7 @@ class WebHookHandler(JsonHandler, WebHookView):
 
     def get(self):
         if self.get_argument("hub.mode") == 'subscribe':
-            self.presenter.subscribe(self.get_argument("hub.challenge"), self.get_argument("hub.verify_token"))
+            self.presenter.subscribe(self.get_argument("hub.verify_token"), self.get_argument("hub.challenge"))
 
     def on_verified(self, response):
         self.write_json(response)

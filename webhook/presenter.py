@@ -8,11 +8,11 @@ class WebHookPresenter(WebHookUseCaseCallback):
         self.view = view
         self.usecase = usecase
 
-    def subscribe(self, challenge, token):
+    def subscribe(self, token, challenge):
         self.usecase.verify(token, challenge, self)
 
     def on_success(self, challenge):
-        self.view.on_verified({'challenge' : challenge})
+        self.view.on_verified({'challenge': challenge})
 
     def on_failure(self):
         self.view.on_error()
