@@ -18,7 +18,7 @@ class TestWebHookUseCase(TestCase):
 
         self.usecase.verify('123', EXPECTED_CHALLENGE, self.callback)
 
-        self.callback.on_success.assert_called_with(EXPECTED_CHALLENGE)
+        self.callback.on_verification_success.assert_called_with(EXPECTED_CHALLENGE)
 
     def test_verify_on_failure(self):
         self.usecase.verify('456', 'expected_challenge', self.callback)

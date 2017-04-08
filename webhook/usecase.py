@@ -11,7 +11,7 @@ class WebHookUseCase(object):
         else:
             callback.on_failure()
 
-    def entryReceived(self, entry, callback):
+    def entry_received(self, entry, callback: WebHookUseCaseCallback):
         page_id = entry['id']
         time_of_event = entry['time']
 

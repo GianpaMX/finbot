@@ -10,4 +10,3 @@ class WebHookUseCaseCallback(object):
 
     def on_failure(self):
         raise NotImplementedError("Please Implement this method")
-
