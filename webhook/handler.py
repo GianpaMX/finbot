@@ -1,7 +1,7 @@
 from tornado.ioloop import IOLoop
 
-from data.account_repository import AccountRepository
 from data.book_repository import BookRepository
+from data.comodity_repository import ComodityRepository
 from data.http_client import HttpClient
 from import_url.usecase import ImportUrlUseCase
 from jsonhandler import JsonHandler
@@ -15,8 +15,8 @@ class WebHookHandler(JsonHandler, WebHookView):
     def initialize(self, config):
         self.http_client = HttpClient()
         self.book_repository = BookRepository()
-        self.account_repository = AccountRepository()
-        self.import_url_usecase = ImportUrlUseCase(self.http_client, self.book_repository, self.account_repository)
+        self.comdity_repository = ComodityRepository()
+        self.import_url_usecase = ImportUrlUseCase(self.http_client, self.book_repository, self.comdity_repository)
         self.receive_message_usecase = ReceiveMessageUseCase(self.import_url_usecase)
         self.webhook_usecase = WebHookUseCase(config)
         self.presenter = WebHookPresenter(self, self.webhook_usecase, self.receive_message_usecase)

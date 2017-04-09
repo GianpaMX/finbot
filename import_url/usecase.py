@@ -1,4 +1,3 @@
-from data.account_repository import AccountRepository
 from data.book_repository import BookRepository
 from data.comodity_repository import ComodityRepository
 from data.http_client import HttpClient
@@ -8,11 +7,11 @@ from entities.comodity import Comodity
 
 
 class ImportUrlUseCase(object):
-    def __init__(self, http_client: HttpClient, book_repository: BookRepository, account_repository: AccountRepository, comodity_repository : ComodityRepository):
+    def __init__(self, http_client: HttpClient, book_repository: BookRepository,
+                 comodity_repository: ComodityRepository):
         self.comodity_repository = comodity_repository
         self.http_client = http_client
         self.book_repository = book_repository
-        self.account_repository = account_repository
 
         self.ns = {
             'gnc': 'http://www.gnucash.org/XML/gnc',
@@ -28,16 +27,16 @@ class ImportUrlUseCase(object):
         self.book_repository.update_or_create(book)
 
         for xml_account in xml_book.findall('gnc:account', self.ns):
-            account = self.get_account(xml_account)
-            self.account_repository.update_or_create(account)
+            account = self.get_account(xml_account, book)
             print(account.name)
 
-    def get_account(self, xml_account):
+    def get_account(self, xml_account, book: Book):
         account_id = xml_account.find('act:id', self.ns).text
-        account = self.account_repository.find_by_id(account_id)
+        account = book.accounts[account_id] if account_id in book.accounts else None
         if not account:
             account = Account()
             account.id = account_id
+            book.accounts[account_id] = account
 
         account.name = xml_account.find('act:name', self.ns).text
         account.type = xml_account.find('act:type', self.ns).text

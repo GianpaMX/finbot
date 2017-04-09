@@ -1,7 +1,6 @@
 from unittest import TestCase
 from unittest.mock import Mock, MagicMock
 
-from data.account_repository import AccountRepository
 from data.book_repository import BookRepository
 from data.comodity_repository import ComodityRepository
 from data.http_client import HttpClient
@@ -12,10 +11,9 @@ class TestImportUrlUseCase(TestCase):
     def setUp(self):
         self.http_client = Mock(HttpClient)
         self.book_repository = Mock(BookRepository)
-        self.account_repository = Mock(AccountRepository)
         self.comodity_repository = Mock(ComodityRepository)
 
-        self.usecase = ImportUrlUseCase(self.http_client, self.book_repository, self.account_repository,
+        self.usecase = ImportUrlUseCase(self.http_client, self.book_repository,
                                         self.comodity_repository)
 
     def test_import_url(self):
@@ -33,7 +31,6 @@ class TestImportUrlUseCase(TestCase):
 
         self.http_client.get_from_url.assert_called_with(EXPECTED_URL)
         self.book_repository.update_or_create.assert_called_with(EXPECTED_BOOK)
-        self.account_repository.update_or_create.assert_called_with(EXPECTED_ACCOUNT)
 
     def test_get_account(self):
         EXPECTED_ID = 'EXPECTED_ID'
@@ -57,14 +54,15 @@ class TestImportUrlUseCase(TestCase):
 
             return mock
 
-        self.account_repository.find_by_id = MagicMock(return_value=None)
         xml_account = Mock()
         xml_account.find = find
         xml_slot = Mock()
         xml_slot.find = find
         xml_account.findall = MagicMock(return_value=[xml_slot])
+        book = Mock()
+        book.accounts = {}
 
-        account = self.usecase.get_account(xml_account)
+        account = self.usecase.get_account(xml_account, book)
 
         assert account.id == EXPECTED_ID
         assert account.name == EXPECTED_NAME
