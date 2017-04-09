@@ -1,12 +1,15 @@
 from data.account_repository import AccountRepository
 from data.book_repository import BookRepository
+from data.comodity_repository import ComodityRepository
 from data.http_client import HttpClient
 from entities.account import Account
 from entities.book import Book
+from entities.comodity import Comodity
 
 
 class ImportUrlUseCase(object):
-    def __init__(self, http_client: HttpClient, book_repository: BookRepository, account_repository: AccountRepository):
+    def __init__(self, http_client: HttpClient, book_repository: BookRepository, account_repository: AccountRepository, comodity_repository : ComodityRepository):
+        self.comodity_repository = comodity_repository
         self.http_client = http_client
         self.book_repository = book_repository
         self.account_repository = account_repository
@@ -54,4 +57,17 @@ class ImportUrlUseCase(object):
             book = Book()
             book.id = book_id
 
+        xml_comodity = xml_book.find('gnc:commodity', self.ns)
+        book.comodity = self.get_comodity(xml_comodity)
+
         return book, xml_book
+
+    def get_comodity(self, xml_comodity):
+        comodity_id = xml_comodity.find('cmdty:id', self.ns).text
+        comodity = self.comodity_repository.find_by_id(comodity_id)
+        if not comodity:
+            comodity = Comodity()
+            comodity.id = comodity_id
+            comodity.space = xml_comodity.find('cmdty:space', self.ns).text
+
+        return comodity

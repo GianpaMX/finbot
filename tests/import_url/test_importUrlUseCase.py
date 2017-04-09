@@ -3,6 +3,7 @@ from unittest.mock import Mock, MagicMock
 
 from data.account_repository import AccountRepository
 from data.book_repository import BookRepository
+from data.comodity_repository import ComodityRepository
 from data.http_client import HttpClient
 from import_url.usecase import ImportUrlUseCase
 
@@ -12,8 +13,10 @@ class TestImportUrlUseCase(TestCase):
         self.http_client = Mock(HttpClient)
         self.book_repository = Mock(BookRepository)
         self.account_repository = Mock(AccountRepository)
+        self.comodity_repository = Mock(ComodityRepository)
 
-        self.usecase = ImportUrlUseCase(self.http_client, self.book_repository, self.account_repository)
+        self.usecase = ImportUrlUseCase(self.http_client, self.book_repository, self.account_repository,
+                                        self.comodity_repository)
 
     def test_import_url(self):
         EXPECTED_URL = 'ANY_URL'
@@ -39,26 +42,20 @@ class TestImportUrlUseCase(TestCase):
         EXPECTED_PLACEHOLDER = True
 
         def find(match, ns):
+            mock = Mock()
+
             if match == 'act:id':
-                mock = Mock()
                 mock.text = EXPECTED_ID
-                return mock
             if match == 'act:name':
-                mock = Mock()
                 mock.text = EXPECTED_NAME
-                return mock
             if match == 'act:type':
-                mock = Mock()
                 mock.text = EXPECTED_TYPE
-                return mock
             if match == 'slot:key':
-                mock_value = Mock()
-                mock_value.text = 'placeholder'
-                return mock_value
+                mock.text = 'placeholder'
             if match == 'slot:value':
-                mock_value = Mock()
-                mock_value.text = 'true' if EXPECTED_PLACEHOLDER else 'false'
-                return mock_value
+                mock.text = 'true' if EXPECTED_PLACEHOLDER else 'false'
+
+            return mock
 
         self.account_repository.find_by_id = MagicMock(return_value=None)
         xml_account = Mock()
@@ -83,8 +80,33 @@ class TestImportUrlUseCase(TestCase):
         gnucash_file = Mock()
         gnucash_file.find = MagicMock(return_value=EXPECTED_XML_BOOK)
         self.book_repository.find_by_id = MagicMock(return_value=None)
+        self.usecase.get_comodity = MagicMock(return_value=Mock())
 
         book, book_xml = self.usecase.get_book(gnucash_file)
 
         assert book.id == EXPECTED_ID
         assert book_xml == EXPECTED_XML_BOOK
+        self.usecase.get_comodity.assert_called_with(mock)
+
+    def test_get_comodity(self):
+        EXPECTED_ID = 'ANY_ID'
+        EXPECTED_SPACE = 'ANY_SPACE'
+
+        def find(id, ns):
+            mock = Mock()
+
+            if id == 'cmdty:id':
+                mock.text = EXPECTED_ID
+            if id == 'cmdty:space':
+                mock.text = EXPECTED_SPACE
+
+            return mock
+
+        xml_comodity = Mock()
+        xml_comodity.find = find
+        self.comodity_repository.find_by_id = MagicMock(return_value=None)
+
+        comodity = self.usecase.get_comodity(xml_comodity)
+
+        assert comodity.id == EXPECTED_ID
+        assert comodity.space == EXPECTED_SPACE
