@@ -1,7 +1,8 @@
-from pprint import pprint
-
 from tornado.ioloop import IOLoop
 
+from data.account_repository import AccountRepository
+from data.book_repository import BookRepository
+from data.http_client import HttpClient
 from import_url.usecase import ImportUrlUseCase
 from jsonhandler import JsonHandler
 from receive_message.usecase import ReceiveMessageUseCase
@@ -12,7 +13,10 @@ from webhook.view import WebHookView
 
 class WebHookHandler(JsonHandler, WebHookView):
     def initialize(self, config):
-        self.import_url_usecase = ImportUrlUseCase()
+        self.http_client = HttpClient()
+        self.book_repository = BookRepository()
+        self.account_repository = AccountRepository()
+        self.import_url_usecase = ImportUrlUseCase(self.http_client, self.book_repository, self.account_repository)
         self.receive_message_usecase = ReceiveMessageUseCase(self.import_url_usecase)
         self.webhook_usecase = WebHookUseCase(config)
         self.presenter = WebHookPresenter(self, self.webhook_usecase, self.receive_message_usecase)
@@ -23,11 +27,7 @@ class WebHookHandler(JsonHandler, WebHookView):
 
     def post(self):
         IOLoop.instance().spawn_callback(lambda: self.presenter.entries_received(self.json_data['entry']))
-        pprint(self.json_data)
         self.write_json({"success": True})
-
-        # if self.json_data['object'] == 'page':
-        #     self.presenter.entriesReceived(self.json_data['entry'])
 
     def on_success(self, response):
         self.write_json(response)
