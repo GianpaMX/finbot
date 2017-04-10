@@ -6,6 +6,7 @@ from data.comodity_repository import ComodityRepository
 from data.http_client import HttpClient
 from entities.account import Account
 from entities.book import Book
+from import_url.callback import ImportUrlCallback
 from import_url.usecase import ImportUrlUseCase
 
 
@@ -18,7 +19,7 @@ class TestImportUrlUseCase(TestCase):
         self.usecase = ImportUrlUseCase(self.http_client, self.book_repository,
                                         self.comodity_repository)
 
-    def test_import_url(self):
+    def test_import_url_success(self):
         EXPECTED_URL = 'ANY_URL'
         EXPECTED_BOOK = Book()
         EXPECTED_ACCOUNT = Mock()
@@ -28,11 +29,22 @@ class TestImportUrlUseCase(TestCase):
         self.http_client.get_from_url = MagicMock(return_value=Mock())
         self.usecase.get_book = MagicMock(return_value=(EXPECTED_BOOK, xml_book))
         self.usecase.get_account = MagicMock(return_value=EXPECTED_ACCOUNT)
+        callback = Mock(ImportUrlCallback)
 
-        self.usecase.import_url(EXPECTED_URL)
+        self.usecase.import_url(EXPECTED_URL, callback)
 
         self.http_client.get_from_url.assert_called_with(EXPECTED_URL)
         self.book_repository.update_or_create.assert_called_with(EXPECTED_BOOK)
+        callback.on_success.assert_called_with(EXPECTED_BOOK)
+
+    def test_import_url_failure(self):
+        EXPECTED_URL = 'ANY_URL'
+        callback = Mock(ImportUrlCallback)
+        self.http_client.get_from_url = MagicMock(side_effect=RuntimeError())
+
+        self.usecase.import_url(EXPECTED_URL, callback)
+
+        callback.on_error.assert_called()
 
     def test_get_account(self):
         EXPECTED_ID = 'EXPECTED_ID'

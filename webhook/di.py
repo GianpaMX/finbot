@@ -1,5 +1,6 @@
 from data.book_repository import BookRepository
 from data.comodity_repository import ComodityRepository
+from data.facebook_send_api_gateway import FacebookSendApiGateway
 from data.http_client import HttpClient
 from import_url.usecase import ImportUrlUseCase
 from receive_message.usecase import ReceiveMessageUseCase
@@ -26,8 +27,11 @@ class WebHookModule:
         return ImportUrlUseCase(self.provideHttpClient(), self.provideBookRepository(),
                                 self.provideComodityRepository())
 
+    def provideSendApiGateway(self):
+        return FacebookSendApiGateway(self.provideHttpClient(), self.config)
+
     def provideReceiveMessageUseCase(self):
-        return ReceiveMessageUseCase(self.provideImportUrlUseCase())
+        return ReceiveMessageUseCase(self.provideImportUrlUseCase(), self.provideSendApiGateway())
 
     def provideWebHookUseCase(self):
         return WebHookUseCase(self.config)

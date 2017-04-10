@@ -4,6 +4,7 @@ from data.http_client import HttpClient
 from entities.account import Account
 from entities.book import Book
 from entities.comodity import Comodity
+from import_url.callback import ImportUrlCallback
 
 
 class ImportUrlUseCase(object):
@@ -21,16 +22,20 @@ class ImportUrlUseCase(object):
             'cmdty': 'http://www.gnucash.org/XML/cmdty'
         }
 
-    def import_url(self, url):
-        gnucash_file = self.http_client.get_from_url(url)
+    def import_url(self, url, callback: ImportUrlCallback):
+        try:
+            gnucash_file = self.http_client.get_from_url(url)
 
-        book, xml_book = self.get_book(gnucash_file)
+            book, xml_book = self.get_book(gnucash_file)
 
-        for xml_account in xml_book.findall('gnc:account', self.ns):
-            account = self.get_account(xml_account, book)
-            book.accounts[account.id] = account
+            for xml_account in xml_book.findall('gnc:account', self.ns):
+                account = self.get_account(xml_account, book)
+                book.accounts[account.id] = account
 
-        self.book_repository.update_or_create(book)
+            self.book_repository.update_or_create(book)
+            callback.on_success(book)
+        except:
+            callback.on_error()
 
     def get_account(self, xml_account, book: Book):
         account_id = xml_account.find('act:id', self.ns).text

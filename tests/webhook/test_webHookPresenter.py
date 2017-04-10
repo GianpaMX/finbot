@@ -42,3 +42,12 @@ class TestWebHookPresenter(TestCase):
         self.presenter.entries_received(entries)
 
         assert self.usecase.entry_received.call_count == len(entries)
+
+    def test_on_message_received(self):
+        EXPECTED_PAGE_ID = 'PAGE_ID'
+        EXPECTED_TIME = 1491670288081
+        EXPECTED_EVENT = {}
+
+        self.presenter.on_message_received(EXPECTED_PAGE_ID, EXPECTED_TIME, EXPECTED_EVENT)
+
+        self.receive_message_usecase.received.assert_called_with(EXPECTED_PAGE_ID, EXPECTED_TIME, EXPECTED_EVENT)
