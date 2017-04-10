@@ -4,6 +4,8 @@ from unittest.mock import Mock, MagicMock
 from data.book_repository import BookRepository
 from data.comodity_repository import ComodityRepository
 from data.http_client import HttpClient
+from entities.account import Account
+from entities.book import Book
 from import_url.usecase import ImportUrlUseCase
 
 
@@ -18,7 +20,7 @@ class TestImportUrlUseCase(TestCase):
 
     def test_import_url(self):
         EXPECTED_URL = 'ANY_URL'
-        EXPECTED_BOOK = Mock()
+        EXPECTED_BOOK = Book()
         EXPECTED_ACCOUNT = Mock()
         xml_account = Mock()
         xml_book = Mock()
@@ -37,6 +39,7 @@ class TestImportUrlUseCase(TestCase):
         EXPECTED_NAME = 'EXPECTED_NAME'
         EXPECTED_TYPE = 'EXPECTED_TYPE'
         EXPECTED_PLACEHOLDER = True
+        EXPECTED_PARENT_ID = 'EXPECTED_PARENT_ID'
 
         def find(match, ns):
             mock = Mock()
@@ -51,6 +54,8 @@ class TestImportUrlUseCase(TestCase):
                 mock.text = 'placeholder'
             if match == 'slot:value':
                 mock.text = 'true' if EXPECTED_PLACEHOLDER else 'false'
+            if match == 'act:parent':
+                mock.text = EXPECTED_PARENT_ID
 
             return mock
 
@@ -59,8 +64,10 @@ class TestImportUrlUseCase(TestCase):
         xml_slot = Mock()
         xml_slot.find = find
         xml_account.findall = MagicMock(return_value=[xml_slot])
+        account = Account()
+        account.id = EXPECTED_PARENT_ID
         book = Mock()
-        book.accounts = {}
+        book.accounts = {EXPECTED_PARENT_ID: account}
 
         account = self.usecase.get_account(xml_account, book)
 
@@ -68,6 +75,7 @@ class TestImportUrlUseCase(TestCase):
         assert account.name == EXPECTED_NAME
         assert account.type == EXPECTED_TYPE
         assert account.is_placeholder == EXPECTED_PLACEHOLDER
+        assert account.parent.id == EXPECTED_PARENT_ID
 
     def test_get_book(self):
         EXPECTED_ID = 'ANY_ID'

@@ -4,3 +4,4 @@ class Account(object):
         self.name = None
         self.type = None
         self.is_placeholder = False
+        self.parent = None

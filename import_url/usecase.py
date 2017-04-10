@@ -17,18 +17,20 @@ class ImportUrlUseCase(object):
             'gnc': 'http://www.gnucash.org/XML/gnc',
             'act': 'http://www.gnucash.org/XML/act',
             'slot': 'http://www.gnucash.org/XML/slot',
-            'book': 'http://www.gnucash.org/XML/book'
+            'book': 'http://www.gnucash.org/XML/book',
+            'cmdty': 'http://www.gnucash.org/XML/cmdty'
         }
 
     def import_url(self, url):
         gnucash_file = self.http_client.get_from_url(url)
 
         book, xml_book = self.get_book(gnucash_file)
-        self.book_repository.update_or_create(book)
 
         for xml_account in xml_book.findall('gnc:account', self.ns):
             account = self.get_account(xml_account, book)
-            print(account.name)
+            book.accounts[account.id] = account
+
+        self.book_repository.update_or_create(book)
 
     def get_account(self, xml_account, book: Book):
         account_id = xml_account.find('act:id', self.ns).text
@@ -36,13 +38,16 @@ class ImportUrlUseCase(object):
         if not account:
             account = Account()
             account.id = account_id
-            book.accounts[account_id] = account
 
         account.name = xml_account.find('act:name', self.ns).text
         account.type = xml_account.find('act:type', self.ns).text
         for xml_slot in xml_account.findall('slot', self.ns):
             if xml_slot.find('slot:key', self.ns).text == 'placeholder':
                 account.is_placeholder = xml_slot.find('slot:value', self.ns).text == 'true'
+
+        xml_parent_account_id = xml_account.find('act:parent', self.ns)
+        if xml_parent_account_id and xml_parent_account_id.text in book.accounts:
+            account.parent = book.accounts[xml_parent_account_id.text]
 
         return account
 
